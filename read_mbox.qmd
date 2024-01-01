@@ -7,6 +7,8 @@ format:
 execute: 
   echo: false
 editor: source
+include-in-header: "Style.txt"
+include-after-body: "Javascript.txt"
 ---
 
 ```{r}
@@ -142,6 +144,17 @@ df <- df %>%
 -->
 
 ```{r}
+
+# df %>% 
+#   gt() %>% 
+#   
+
+print(
+ '<div class=\\"popup\\" onclick=\\"myFunction()\\">Click me!
+  <span class=\\"popuptext\\" id=\\"myPopup\\">  It is becoming clear that the extensive bribery employed by Walmart to  ease their entry into the Mexican market was not a localized phenomenon, but was known about, if not endorsed by upper management. If that is true, then why would this not be a standard business practice wherever Walmart ran into opposition? How confident can we be that the controversial store in The Heights was not helped along by similar practices, for example? It might be timely to investigate.  
+</span>
+</div> '
+)
 
 ```
 
