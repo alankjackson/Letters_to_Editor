@@ -1,13 +1,16 @@
 ---
-title: "Read mbox file"
+title: "My Letters To the Editor"
 author: "Alan Jackson"
-format: html
+format: 
+  html: 
+    self-contained: TRUE
+execute: 
+  echo: false
 editor: source
 ---
 
-## Read and Parse an mbox file
-
 ```{r}
+#| include: false
 
 library(tidyverse)
 library(stringr)
@@ -18,7 +21,9 @@ mbox <- "ajackson-Letters_to_Editor.mbox"
 
 ```
 
+<!--
 #   Read and parse
+-->
 
 ```{r}
 
@@ -131,6 +136,17 @@ df <- df %>%
   arrange(Date)
 
 ```
+
+<!--
+#       Now create a webpage
+-->
+
+```{r}
+
+```
+
+
+
 
 
 
