@@ -1,0 +1,136 @@
+---
+title: "Read mbox file"
+author: "Alan Jackson"
+format: html
+editor: source
+---
+
+## Read and Parse an mbox file
+
+```{r}
+
+library(tidyverse)
+library(stringr)
+
+path <- "/home/ajackson/projects/Letters_to_Editor/Takeout/Mail/"
+
+mbox <- "ajackson-Letters_to_Editor.mbox"
+
+```
+
+#   Read and parse
+
+```{r}
+
+Subject <- NULL
+Date <- NULL
+Text <- NULL
+base64 <- FALSE
+quoteprint <- FALSE
+df <- tibble(Date, Subject, Text)
+
+Where <- "Header" # Header, Text, or Html
+Boundary <- "not me yet" #  boundary string
+linenumber <- 0
+
+con = file(paste0(path, mbox), "r")
+while ( TRUE ) {
+  line = readLines(con, n = 1)
+  linenumber <- linenumber + 1
+  # print(paste("--> line", linenumber))
+  # print(line)
+  # if (linenumber>2800) {break}
+  if ( length(line) == 0 ) {
+    break
+  }
+  ####    do stuff
+  if (Where == "Header") { ########   Header
+    if (str_starts(line, "Subject: ")){  ## Subject
+      Subject <- str_remove(line, "Subject: ")
+      Subject <- emayili::qp_decode(Subject)
+      Subject <- str_remove(Subject, "=\\?UTF-8\\?Q\\?")
+      Subject <- str_remove(Subject, "\\?=")
+      Subject <- str_replace_all(Subject, "_", " ")
+    }
+    if (str_starts(line, "Date: ")){ ##  Date
+      Date <- str_remove(line, "Date: ")
+    }
+    if (str_starts(line, "Content-Type: multipart/alternative; boundary=")){
+      Boundary <- str_remove(line, "Content-Type: multipart/alternative; boundary=")
+      Boundary <- paste0("--", str_remove_all(Boundary, '"'))
+    }
+    if (str_starts(line, Boundary)){
+      Where <- "Text"
+      # print(paste("*******", Subject, Date, Boundary))
+      next
+    }
+    
+  }
+  else if (Where == "Text"){ ###########  Text
+    if (str_starts(line, "Content-Type:")) {next} # skip header
+    if (str_starts(line, Boundary)){
+      Where <- "Html"
+      base64 <- FALSE
+      quoteprint <- FALSE
+      # print(paste("*******", Text))
+      next
+    }
+    if (line == "Content-Transfer-Encoding: base64") {
+      base64 <- TRUE
+      next
+    }
+    if (line == "Content-Transfer-Encoding: quoted-printable") {
+      quoteprint <- TRUE
+      next
+    }
+    
+    if (base64) {
+      if (str_length(line)==0) {next}
+      Text <- paste0(Text, str_replace_all(RCurl::base64Decode(line),
+                                           "[\\\"\r\n]", " "))
+    } else if(quoteprint) {
+      if (str_length(line)==0) {next}
+      Text <- paste(Text, emayili::qp_decode(line))
+    } else {
+      Text <- paste(Text, line)
+    }
+  }
+  else if (Where == "Html") { #########  Html
+    if (str_starts(line, Boundary)){
+      #   Save stuff out and reset
+      Text <- str_remove_all(Text, "= ")
+      # Text <- utf8::utf8_normalize(Text, map_quote = TRUE)
+      # Text <- gsub("[\u2018\u2019\u201A\u201B\u2032\u2035]", "'", Text)
+      Text <- str_remove(Text, "Alan Jackson.*$")
+      df <- bind_rows(df, tibble(Date, Subject, Text))
+      Subject <- NULL
+      Date <- NULL
+      Text <- NULL
+      Where <- "Header"
+      # print(paste("******* end of a letter"))
+      next
+    }
+  }
+  else { ############ fail - should never get here
+    print(paste("####### how did I get here????? Line", linenumber))
+    }
+  
+  
+}
+
+close(con)
+
+```
+
+```{r}
+
+#   convert date field
+
+df <- df %>% 
+  mutate(Date=lubridate::dmy_hms(Date)) %>% 
+  arrange(Date)
+
+```
+
+
+
