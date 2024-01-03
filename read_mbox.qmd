@@ -144,19 +144,59 @@ df <- df %>%
 -->
 
 ```{r}
+#| output: asis
+# library(knitr)
+# knit_print.gt <- function(x, ...) {
+#   stringr::str_c(
+#     "<div style='all:initial';>\n",
+#     gt::as_raw_html(x),
+#     "\n</div>"
+#   ) |>
+#     knitr::asis_output()
+# 
+# }
+# registerS3method(
+#   "knit_print", 'gt_tbl', knit_print.gt,
+#   envir = asNamespace("gt")
+#   # important to overwrite {gt}s knit_print
+# )
 
-# df %>% 
-#   gt() %>% 
-#   
+# foo <- df %>%
+#   mutate(Subject= (paste0(
+#  '<div class="popup", onclick="myFunction(', row_number(), ')">',
+#  Subject,
+#   '<span class="popuptext", id="', row_number(), '">',
+#   Text,
+#   '</span>',
+#   '</div> '
+#   ))) %>% 
+#   select(Date, Subject)  
 
-print(
- '<div class=\\"popup\\" onclick=\\"myFunction()\\">Click me!
-  <span class=\\"popuptext\\" id=\\"myPopup\\">  It is becoming clear that the extensive bribery employed by Walmart to  ease their entry into the Mexican market was not a localized phenomenon, but was known about, if not endorsed by upper management. If that is true, then why would this not be a standard business practice wherever Walmart ran into opposition? How confident can we be that the controversial store in The Heights was not helped along by similar practices, for example? It might be timely to investigate.  
-</span>
-</div> '
-)
+foo <- df %>% 
+  mutate(Subject= paste0(
+    '<b>', Subject, '</b><br>', Text)) %>% 
+  select(Date, Subject)
+  
+
+# foo %>% head() %>% 
+#    gt::gt() %>% 
+#    gt::as_raw_html() %>% 
+#    knitr::asis_output()
+
+foo %>% 
+  knitr::kable(escape=FALSE) %>% 
+  kableExtra::kable_styling()
 
 ```
+
+```{r}
+#| output: asis
+# library(simplermarkdown)
+# cat(md_table(head(foo)))
+# knitr::kable(head(foo),format = "html")
+
+```
+
 
 
 
