@@ -145,55 +145,43 @@ df <- df %>%
 
 ```{r}
 #| output: asis
-# library(knitr)
-# knit_print.gt <- function(x, ...) {
-#   stringr::str_c(
-#     "<div style='all:initial';>\n",
-#     gt::as_raw_html(x),
-#     "\n</div>"
-#   ) |>
-#     knitr::asis_output()
+
+
+# foo <- df %>% 
+#   mutate(Subject= paste0(
+#     '<b>', Subject, '</b><br>', Text)) %>% 
+#   select(Date, Subject)
 # 
-# }
-# registerS3method(
-#   "knit_print", 'gt_tbl', knit_print.gt,
-#   envir = asNamespace("gt")
-#   # important to overwrite {gt}s knit_print
-# )
+# template <- lubridate::stamp_date("17 Jan 2023")
 
-# foo <- df %>%
-#   mutate(Subject= (paste0(
-#  '<div class="popup", onclick="myFunction(', row_number(), ')">',
-#  Subject,
-#   '<span class="popuptext", id="', row_number(), '">',
-#   Text,
-#   '</span>',
-#   '</div> '
-#   ))) %>% 
-#   select(Date, Subject)  
-
-foo <- df %>% 
-  mutate(Subject= paste0(
-    '<b>', Subject, '</b><br>', Text)) %>% 
-  select(Date, Subject)
-  
-
-# foo %>% head() %>% 
-#    gt::gt() %>% 
-#    gt::as_raw_html() %>% 
-#    knitr::asis_output()
-
-foo %>% 
-  knitr::kable(escape=FALSE) %>% 
-  kableExtra::kable_styling()
+# foo %>% 
+#   mutate(Date=template(Date)) %>% 
+#   writexl::write_xlsx("/home/ajackson/Dropbox/Rprojects/Letters_to_Editor/Final.xlsx", 
+#   col_names = TRUE)
+#   
+# 
+# foo %>% 
+#   knitr::kable(escape=FALSE) %>% 
+#   kableExtra::kable_styling()
 
 ```
 
 ```{r}
-#| output: asis
-# library(simplermarkdown)
-# cat(md_table(head(foo)))
-# knitr::kable(head(foo),format = "html")
+
+# Read in spreadsheet and then output 
+
+foo2 <-  
+  readxl::read_xlsx("/home/ajackson/Dropbox/Rprojects/Letters_to_Editor/Final.xlsx", 
+  col_names = TRUE)
+
+foo2 %>% 
+  mutate(Subject=if_else(Pub, stringr::str_replace(Subject, "<b>", "<b><mark>"), Subject)) %>% 
+  mutate(Subject=if_else(Pub, stringr::str_replace(Subject, "</b>", "</mark></b>"), Subject)) %>% 
+  select(Date, Subject) %>% 
+  mutate(Date=lubridate::dmy(Date)) %>% 
+  arrange(Date) %>% 
+  knitr::kable(escape=FALSE) %>% 
+  kableExtra::kable_styling()
 
 ```
 
